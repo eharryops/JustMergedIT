@@ -1,0 +1,20 @@
+# Centralized Application Configuration
+# This file controls which applications are deployed to the cluster
+# Set enabled: true to deploy, enabled: false to skip
+
+applications:
+  karpenter:
+    enabled: true
+    description: "Kubernetes node autoscaler for cost-effective scaling"
+    manifestPath: "karpenter.yaml"
+    
+  cert-manager:
+    enabled: true
+    description: "Automated TLS certificate management"
+    manifestPath: "cert-manager.yaml"
+    
+  # Add more applications here as needed
+  # example-app:
+  #   enabled: false
+  #   description: "Example application"
+  #   manifestPath: "example-app.yaml"

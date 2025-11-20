@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: karpenter
+
+resources:
+  # Karpenter CRDs
+  - https://raw.githubusercontent.com/aws/karpenter/v0.32.0/pkg/apis/crds/karpenter.sh_provisioners.yaml
+  - https://raw.githubusercontent.com/aws/karpenter/v0.32.0/pkg/apis/crds/karpenter.sh_machines.yaml
+  - https://raw.githubusercontent.com/aws/karpenter/v0.32.0/pkg/apis/crds/karpenter.k8s.aws_awsnodetemplates.yaml
+  
+  # Karpenter deployment and RBAC
+  - serviceaccount.yaml
+  - deployment.yaml
+  - provisioner.yaml
+
+configMapGenerator:
+  - name: karpenter-global-settings
+    literals:
+      - aws.clusterName=main-eks
+      - aws.clusterEndpoint=REPLACE_WITH_CLUSTER_ENDPOINT
+      - aws.defaultInstanceProfile=KarpenterNodeInstanceProfile

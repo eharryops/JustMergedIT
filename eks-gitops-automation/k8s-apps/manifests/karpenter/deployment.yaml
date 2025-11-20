@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karpenter
+  namespace: karpenter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: karpenter
+  template:
+    metadata:
+      labels:
+        app: karpenter
+    spec:
+      serviceAccountName: karpenter
+      containers:
+        - name: controller
+          image: public.ecr.aws/karpenter/controller:v0.32.0
+          env:
+            - name: CLUSTER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: karpenter-global-settings
+                  key: aws.clusterName
+            - name: CLUSTER_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: karpenter-global-settings
+                  key: aws.clusterEndpoint
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

@@ -1,0 +1,142 @@
+name: Deploy Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: 'EKS Cluster Name'
+        required: false
+        default: 'main-eks'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure ArgoCD Applications
+        run: |
+          echo "Configuring ArgoCD applications with repository info..."
+          
+          # Use repository variable if set, otherwise auto-detect
+          GITHUB_USER="${{ vars.GITHUB_USERNAME || github.repository_owner }}"
+          REPO_NAME="${{ vars.REPO_NAME || github.event.repository.name }}"
+          
+          echo "Using GitHub user: $GITHUB_USER"
+          echo "Using repository: $REPO_NAME"
+          
+          # Update all ArgoCD application files
+          find eks-gitops-automation/k8s-apps/argocd-apps -name "*.yaml" -type f | while read file; do
+            if grep -q "YOUR_USERNAME" "$file"; then
+              echo "  Updating: $(basename $file)"
+              sed -i "s/YOUR_USERNAME/$GITHUB_USER/g" "$file"
+            fi
+            if grep -q "YOUR_REPO" "$file"; then
+              sed -i "s/YOUR_REPO/$REPO_NAME/g" "$file"
+            fi
+          done
+          
+          echo "ArgoCD applications configured for: $GITHUB_USER/$REPO_NAME"
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.5
+
+      - name: Check cluster limit (max 2 clusters)
+        id: check_limit
+        run: |
+          chmod +x scripts/check-cluster-limit.sh
+          ./scripts/check-cluster-limit.sh "${{ github.event.inputs.cluster_name }}"
+
+      - name: Terraform Init
+        working-directory: eks-gitops-automation/terraform/infra
+        run: terraform init
+
+      - name: Check if cluster exists
+        id: check_cluster
+        run: |
+          CLUSTER="${{ github.event.inputs.cluster_name }}"
+          if aws eks describe-cluster --name "$CLUSTER" --region ${{ env.AWS_REGION }} &> /dev/null; then
+            echo "cluster_exists=true" >> $GITHUB_OUTPUT
+            echo "Cluster '$CLUSTER' already exists - will import to Terraform state"
+          else
+            echo "cluster_exists=false" >> $GITHUB_OUTPUT
+            echo "Cluster '$CLUSTER' does not exist - will create new cluster"
+          fi
+
+      - name: Import existing cluster & IAM roles
+        if: steps.check_cluster.outputs.cluster_exists == 'true'
+        working-directory: eks-gitops-automation/terraform/infra
+        run: |
+          CLUSTER="${{ github.event.inputs.cluster_name }}"
+          echo "Importing existing cluster resources to Terraform state..."
+          terraform import module.eks.aws_eks_cluster.this[0] "$CLUSTER" || true
+          terraform import module.eks.aws_iam_role.eks_cluster_role[0] "${CLUSTER}-role" || true
+          terraform import module.eks.aws_iam_role.eks_node_role[0] "${CLUSTER}-node-role" || true
+
+      - name: Terraform Apply
+        working-directory: eks-gitops-automation/terraform/infra
+        run: terraform apply -auto-approve
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --name ${{ github.event.inputs.cluster_name }} --region ${{ env.AWS_REGION }}
+          echo "kubectl configured for cluster: ${{ github.event.inputs.cluster_name }}"
+
+      - name: Configure Karpenter
+        run: |
+          echo "Configuring Karpenter with cluster details..."
+          CLUSTER_NAME="${{ github.event.inputs.cluster_name }}"
+          
+          # Get Cluster Endpoint
+          CLUSTER_ENDPOINT=$(aws eks describe-cluster --name "$CLUSTER_NAME" --region ${{ env.AWS_REGION }} --query "cluster.endpoint" --output text)
+          
+          echo "Cluster Endpoint: $CLUSTER_ENDPOINT"
+          
+          # Replace placeholder in Karpenter kustomization
+          sed -i "s|REPLACE_WITH_CLUSTER_ENDPOINT|$CLUSTER_ENDPOINT|g" eks-gitops-automation/k8s-apps/manifests/karpenter/kustomization.yaml
+          
+          echo "Karpenter configuration updated."
+
+      - name: Install ArgoCD
+        run: |
+          echo "Installing ArgoCD..."
+          kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -k eks-gitops-automation/k8s-apps/argocd/
+          echo "URL:"
+          kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+          echo ""
+          echo ""
+          echo "Username: admin"
+          echo "Password:"
+          kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+          echo ""
+
+      - name: Deploy Applications (based on app-of-apps.yaml)
+        run: |
+          echo "Deploying applications based on app-of-apps.yaml configuration..."
+          cd eks-gitops-automation
+          python3 scripts/apply-apps.py
+          
+          echo ""
+          echo "Deployed applications:"
+          kubectl get applications -n argocd
+
+      - name: Cleanup on Failure
+        if: failure()
+        working-directory: eks-gitops-automation/terraform/infra
+        run: |
+          echo "Terraform apply failed. Starting cleanup..."
+          terraform destroy -auto-approve
