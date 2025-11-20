@@ -1,0 +1,18 @@
+tools:
+  argocd:
+    enabled: true
+    chartPath: "k8s/argocd"
+    valuesFile: "argocd-values.yml" 
+
+  karpenter:
+    enabled: true
+    chartPath: "k8s/karpenter"
+    valuesFile: "karpenter-values.yml"  # your Karpenter config file
+
+  cert-manager:
+    enabled: false
+    valuesFile: "cert-manager-values.yml"  # optional, disable for now
+    
+  metrics-server:
+    enabled: false
+    valuesFile: "" 

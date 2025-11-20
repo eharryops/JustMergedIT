@@ -12,8 +12,8 @@ This repository serves as a centralized source for building, managing, and scali
 
 The projects within this repository are categorized around key domains of Platform and DevOps work:
 
-* **Infrastructure as Code (IaC):** Terraform, Pulumi, CloudFormation examples.
-* **Automation & Scripting:** PowerShell, Bash, Python scripts for routine tasks.
+* **Infrastructure as Code (IaC):** Terraform (mainly), CloudFormation examples.
+* **Automation & Scripting:** Bash, and Python scripts for routine tasks.
 * **Kubernetes & Containers:** Deployment manifests, Helm charts, and containerization best practices.
 * **Observability:** Configuration for Prometheus, Grafana, and logging solutions.
 * **Security & Compliance:** Policy-as-Code examples (e.g., OPA Gatekeeper).

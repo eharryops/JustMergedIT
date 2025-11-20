@@ -1,0 +1,46 @@
+global:
+  image:
+    tag: v2.11.2   # (pin Argo CD version you want, latest stable recommended)
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+
+# Argo CD API server
+server:
+  service:
+    type: LoadBalancer   # Or "ClusterIP" if you’ll expose via Ingress/ALB
+    annotations: {}      # e.g. AWS LB annotations if needed
+  ingress:
+    enabled: false       # if true, configure ingress
+  extraArgs:
+    - --insecure          # if you’re not setting TLS on the API server yet
+
+# Argo CD UI (Dex, OIDC, etc.)
+dex:
+  enabled: true
+  service:
+    type: ClusterIP
+
+# Argo CD repo server (handles Git)
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Controller (applies manifests)
+controller:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# RBAC (lock down later in prod)
+rbac:
+  policy.default: role:admin

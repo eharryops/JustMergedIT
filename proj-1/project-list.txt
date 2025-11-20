@@ -1,0 +1,130 @@
+################################################################################
+
+Phase 1: Foundations – Terraform + AWS
+
+################################################################################
+Goal: Understand IaC (Infrastructure as Code) and cloud provisioning.
+#######################################
+Project: Provision a VPC with Subnets
+#######################################
+Skills: Terraform, AWS networking
+
+Tasks:
+Create VPC with public and private subnets.
+Add Internet Gateway and NAT Gateway.
+Use security groups for basic firewall rules.
+    Optional: Add tags and outputs for later use in Kubernetes.
+
+
+#######################################
+Project: Deploy EC2 Instances with IAM Roles
+#######################################
+Skills: Terraform, AWS IAM
+
+Tasks:
+Launch EC2 instances in private/public subnets.
+Attach IAM roles with least privilege.
+SSH access using key pairs.
+
+
+################################################################################
+
+Phase 2: Kubernetes Cluster Deployment
+
+################################################################################
+
+Goal: Learn cluster provisioning, networking, and RBAC.
+#######################################
+Project: Create an EKS Cluster using Terraform
+#######################################
+Skills: Terraform, AWS EKS, VPC integration
+
+Tasks:
+Provision EKS cluster in the VPC created earlier.
+Create worker nodes with node groups.
+Configure kubectl access with aws-iam-authenticator.
+Test cluster by deploying a sample Nginx pod.
+
+Project: Secure the Cluster
+Skills: Kubernetes RBAC, Network Policies
+
+Tasks:
+Create namespaces for dev/test/prod.
+Apply RBAC rules for users and service accounts.
+Implement Network Policies to restrict traffic between pods.
+
+
+################################################################################
+
+Phase 3: Applications & CI/CD
+
+################################################################################
+Goal: Deploy apps securely on Kubernetes and automate deployments.
+#######################################
+Project: Deploy a Microservice Application
+#######################################
+Skills: Helm, Kubernetes manifests
+
+Tasks:
+Deploy a multi-container app (e.g., frontend + backend + DB) using Helm.
+Enable ConfigMaps and Secrets for configuration.
+Test scaling and rolling updates.
+
+
+#######################################
+Project: Add CI/CD with GitHub Actions
+#######################################
+Skills: GitHub Actions, Kubernetes, Terraform
+
+Tasks:
+Automate Terraform deployments of infrastructure.
+Automate container builds and deployments to EKS.
+Add automated tests for app health.
+
+
+################################################################################
+
+Phase 4: Advanced Security & Monitoring
+
+################################################################################
+Goal: Harden your cluster and enable observability.
+#######################################
+Project: Implement Cluster Hardening
+#######################################
+Skills: Kubernetes security best practices, AWS security
+
+Tasks:
+Enable Pod Security Standards or OPA/Gatekeeper policies.
+Restrict privileged containers.
+Enable encryption at rest (EBS) and in transit (TLS for services).
+
+
+#######################################
+Project: Observability
+#######################################
+Skills: Prometheus, Grafana, CloudWatch
+
+Tasks:
+Install Prometheus + Grafana in cluster.
+Export metrics to CloudWatch.
+Set alerts for pod failures or high CPU/memory usage.
+
+
+################################################################################
+
+Phase 5: Optional Capstone Project
+
+################################################################################
+Goal: Combine everything into a real-world scenario.
+Project: Multi-Tier Production Environment
+Deploy a full-stack application on EKS.
+
+Use Terraform to manage VPC, EKS, and RDS.
+
+Secure namespaces with RBAC and Network Policies.
+
+Implement CI/CD pipelines.
+
+Add monitoring and automated alerts.
+
+Bonus: Configure AWS WAF, GuardDuty, and Secrets Manager.

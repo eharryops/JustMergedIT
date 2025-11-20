@@ -1,0 +1,20 @@
+serviceAccount:
+  name: karpenter
+  namespace: karpenter
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${aws_account_id}:role/${eks_cluster_name}-karpenter-controller
+
+
+clusterName: main-eks
+clusterEndpoint: "https://603D4803D6ACBF4EFF517E395A8EDB9C.sk1.us-east-1.eks.amazonaws.com"
+aws:
+  defaultInstanceProfile: KarpenterNodeInstanceProfile-main-eks
+ttlSecondsAfterEmpty: 300
+subnetSelector:
+  karpenter.sh/discovery: main-eks
+securityGroupSelector:
+  karpenter.sh/discovery: main-eks
+
+image:
+  repository: <your-ecr-or-dockerhub-repo>
+  tag: <your-tag>
