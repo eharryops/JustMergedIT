@@ -57,8 +57,8 @@ jobs:
       - name: Check cluster limit (max 2 clusters)
         id: check_limit
         run: |
-          chmod +x scripts/check-cluster-limit.sh
-          ./scripts/check-cluster-limit.sh "${{ github.event.inputs.cluster_name }}"
+          chmod +x eks-gitops-automation/scripts/check-cluster-limit.sh
+          ./eks-gitops-automation/scripts/check-cluster-limit.sh "${{ github.event.inputs.cluster_name }}"
 
       - name: Terraform Init
         working-directory: eks-gitops-automation/terraform/infra

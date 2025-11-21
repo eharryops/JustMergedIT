@@ -422,18 +422,9 @@ MIT License - See [LICENSE](./LICENSE) for details
 
 **Eddie** - DevOps Engineer
 
-- Portfolio: [devops-portfolio](https://github.com/YOUR_USERNAME/devops_engineering_portfolio)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/YOUR_PROFILE)
+- Portfolio: [DevOps-Portfolio](https://eddie-devops-portfolio.netlify.app/)
+- LinkedIn: [Eddie-Harry](www.linkedin.com/in/eddie-harry)
 
----
-
-## Acknowledgments
-
-- AWS for EKS and comprehensive documentation
-- ArgoCD team for excellent GitOps tooling
-- Karpenter team for intelligent autoscaling
-- HashiCorp for Terraform
-- The Kubernetes community
 
 ---
 
